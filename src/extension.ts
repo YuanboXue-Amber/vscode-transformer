@@ -1,74 +1,86 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
-import * as Prism from 'prismjs';
-import {transformStylesObject} from 'v9helper-transform-style-object';
-import {main} from 'v9helper';
+import * as vscode from "vscode";
+import * as Prism from "prismjs";
+import { transformStylesObject } from "v9helper-transform-style-object";
+import { main } from "v9helper";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  // Use the console to output diagnostic information (console.log) and errors (console.error)
+  // This line of code will only be executed once when your extension is activated
+  console.log('Congratulations, your extension "transformer" is now active!');
 
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "transformer" is now active!');
+  // The command has been defined in the package.json file
+  // Now provide the implementation of the command with registerCommand
+  // The commandId parameter must match the command field in package.json
+  // let disposable =
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	// let disposable = 
-	
-	// vscode.commands.registerCommand('transformer.t', () => {
-	// 	const editor = vscode.window.activeTextEditor;
-    
-	// 	console.log('filename:', vscode.window.activeTextEditor?.document.fileName)
-	// 	main({ inputFilename: vscode.window.activeTextEditor?.document.fileName, exportName: 'result', isTransformAllThemes: true})
-	// 	var selection = editor?.selection;
-	// 	var text = editor?.document.getText(selection);
-		
-	// 	const panel = vscode.window.createWebviewPanel('transformer', 'Transformer', vscode.ViewColumn.Beside, {
-	// 		retainContextWhenHidden: true,
-	// 		enableScripts: true
-	// 	});
+  // vscode.commands.registerCommand('transformer.t', () => {
+  // 	const editor = vscode.window.activeTextEditor;
 
-		
-	// 	panel.webview.html = getWebviewContent(`${transformStylesObject(text)}`, panel, context);
+  // 	console.log('filename:', vscode.window.activeTextEditor?.document.fileName)
+  // 	main({ inputFilename: vscode.window.activeTextEditor?.document.fileName, exportName: 'result', isTransformAllThemes: true})
+  // 	var selection = editor?.selection;
+  // 	var text = editor?.document.getText(selection);
 
-	// 	vscode.window.onDidChangeTextEditorSelection((ev) => {
-	// 		panel.webview.html = getWebviewContent(`${transformStylesObject(ev.textEditor.document.getText(ev.textEditor.selection))}`, panel, context);
-	// 	});
+  // 	const panel = vscode.window.createWebviewPanel('transformer', 'Transformer', vscode.ViewColumn.Beside, {
+  // 		retainContextWhenHidden: true,
+  // 		enableScripts: true
+  // 	});
 
-	// });
+  // 	panel.webview.html = getWebviewContent(`${transformStylesObject(text)}`, panel, context);
 
-	let disposable = vscode.commands.registerCommand('transformer.helloWorld', async () => {
-		console.log(vscode.window.activeTextEditor?.document.uri);
-		const fn = main({
-			exportName: 'avatarStyles',
-			inputFilename: vscode.window.activeTextEditor?.document.uri.path,
-			isTransformAllThemes: true
-		})({
-			variables: { hasCursorPointer: true },
-			isNamespaced: false,
-			componentProps: undefined,
-			variable: undefined,
-			variableProps: undefined,
-		});
-		console.log('command: ', fn); 
-	  });
+  // 	vscode.window.onDidChangeTextEditorSelection((ev) => {
+  // 		panel.webview.html = getWebviewContent(`${transformStylesObject(ev.textEditor.document.getText(ev.textEditor.selection))}`, panel, context);
+  // 	});
 
-	context.subscriptions.push(disposable);
-	
+  // });
+
+  const preparedSiteVariables = {};
+
+  let disposable = vscode.commands.registerCommand(
+    "transformer.helloWorld",
+    async () => {
+      console.log(vscode.window.activeTextEditor?.document.uri);
+
+      const namespaced = main({
+        preparedSiteVariables,
+        exportName: "default",
+        inputFilename: vscode.window.activeTextEditor?.document.uri
+          .path as string,
+        isTransformAllThemes: true,
+      })({
+        variables: {
+          isGalleryButton: true, // button-namespace-lightbox.ts
+        },
+        variableProps: {
+          disabled: true,
+        },
+        isNamespaced: true,
+      });
+      console.log("command namespaced: ", namespaced);
+      console.log("preparedSiteVariables: ", preparedSiteVariables);
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
 
-function getWebviewContent(text: string, panel:vscode.WebviewPanel, context:vscode.ExtensionContext) {
-	const prismStyles = panel.webview.asWebviewUri(vscode.Uri.joinPath(
-		context.extensionUri, 'src/styles', 'prism.css'));
-	const styles = panel.webview.asWebviewUri(vscode.Uri.joinPath(
-			context.extensionUri, 'src/styles', 'styles.css'));
+function getWebviewContent(
+  text: string,
+  panel: vscode.WebviewPanel,
+  context: vscode.ExtensionContext
+) {
+  const prismStyles = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, "src/styles", "prism.css")
+  );
+  const styles = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, "src/styles", "styles.css")
+  );
 
-	
-	return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
 		<meta charset="UTF-8">
@@ -82,7 +94,11 @@ function getWebviewContent(text: string, panel:vscode.WebviewPanel, context:vsco
 		<div class="actions">
 			<button class="btn" onclick="copyData(code)">&#x274F; Click to copy</button>
 		</div>
-		<pre class="code" id="code">${Prism.highlight(text, Prism.languages.javascript, 'javascript')}</pre>
+		<pre class="code" id="code">${Prism.highlight(
+      text,
+      Prism.languages.javascript,
+      "javascript"
+    )}</pre>
 	</main>
 	<script>
 		function copyData(containerid) {
@@ -97,8 +113,6 @@ function getWebviewContent(text: string, panel:vscode.WebviewPanel, context:vsco
 </body>
 </html>`;
 }
-
-
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
